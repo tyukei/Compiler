@@ -1,0 +1,1 @@
+program aa; var a: integer

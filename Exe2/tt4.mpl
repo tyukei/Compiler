@@ -1,0 +1,1 @@
+program aa; procedure a (a: array [1]

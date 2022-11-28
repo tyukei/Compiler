@@ -1,0 +1,1233 @@
+        -:    0:Source:ebnf-list.c
+        -:    0:Graph:ebnf-list.gcno
+        -:    0:Data:ebnf-list.gcda
+        -:    0:Runs:90
+        -:    1:#include "pprinter-list.h"
+        -:    2:#define NOMAL 0
+        -:    3:#define ERROR 1
+        -:    4:int token;
+        -:    5:
+function set_token called 89 returned 100% blocks executed 100%
+       89:    6:void set_token(int t)
+        -:    7:{
+       89:    8:    token = t;
+       89:    9:}
+        -:   10:
+function parse_program called 89 returned 19% blocks executed 100%
+       89:   11:int parse_program()
+        -:   12:{
+        -:   13:    // program ::= "program" NAME ";" block "."
+       89:   14:    if (token != TPROGRAM)
+branch  0 taken 1% (fallthrough)
+branch  1 taken 99%
+        -:   15:    {
+        1:   16:        error("Keyword 'program' is not found\n");
+call    0 returned 0%
+        -:   17:        // return ERROR;
+        -:   18:    }
+       88:   19:    token = scan();
+call    0 returned 99%
+       87:   20:    if (token != TNAME)
+branch  0 taken 1% (fallthrough)
+branch  1 taken 99%
+        -:   21:    {
+        1:   22:        error("Program name is not found\n");
+call    0 returned 0%
+        -:   23:    }
+       86:   24:    token = scan();
+call    0 returned 100%
+       86:   25:    if (token != TSEMI)
+branch  0 taken 2% (fallthrough)
+branch  1 taken 98%
+        -:   26:    {
+        2:   27:        error("';' is not found in parse_program\n");
+call    0 returned 0%
+        -:   28:    }
+       84:   29:    token = scan();
+call    0 returned 100%
+       84:   30:    if (parse_block() == ERROR)
+call    0 returned 21%
+        -:   31:    {
+        -:   32:        // error("Block is not found\n");
+        -:   33:    }
+       18:   34:    if (token != TDOT)
+branch  0 taken 6% (fallthrough)
+branch  1 taken 94%
+        -:   35:    {
+        1:   36:        error("'.' is not found at the end of program\n");
+call    0 returned 0%
+        -:   37:    }
+       17:   38:    printf("\n");
+call    0 returned 100%
+       17:   39:    token = scan();
+call    0 returned 100%
+       17:   40:    return NOMAL;
+        -:   41:}
+        -:   42:
+function parse_block called 84 returned 21% blocks executed 100%
+       84:   43:int parse_block()
+        -:   44:{
+        -:   45:    // block ::= {variable_declaration | procedure_declaration} compound_statement
+      153:   46:    while ((token == TVAR) || (token == TPROCEDURE))
+branch  0 taken 38%
+branch  1 taken 62% (fallthrough)
+branch  2 taken 47%
+branch  3 taken 53% (fallthrough)
+        -:   47:    {
+      103:   48:        if (token == TVAR)
+branch  0 taken 56% (fallthrough)
+branch  1 taken 44%
+        -:   49:        {
+       58:   50:            if (parse_variable_declaration() == ERROR)
+call    0 returned 83%
+        -:   51:            {
+        -:   52:                // error("Variable declaration is not found in block\n");
+        -:   53:            }
+        -:   54:        }
+       45:   55:        else if (token == TPROCEDURE)
+branch  0 taken 100% (fallthrough)
+branch  1 taken 0%
+        -:   56:        {
+       45:   57:            if (parse_subprogram_declaration() == ERROR)
+call    0 returned 47%
+        -:   58:            {
+        -:   59:                // error("Subprogram declaration is not found in block\n");
+        -:   60:            }
+        -:   61:        }
+        -:   62:    }
+       50:   63:    if (parse_compound_statement() == ERROR)
+call    0 returned 36%
+        -:   64:    {
+        -:   65:        // error("Compound statement is not found in block\n");
+        -:   66:    }
+       18:   67:    return NOMAL;
+        -:   68:}
+        -:   69:
+function parse_variable_declaration called 70 returned 84% blocks executed 100%
+       70:   70:int parse_variable_declaration()
+        -:   71:{
+        -:   72:    // variable_declaration ::= "var" variable_names ":" type ";" {variable_names ":" type ";"}
+        -:   73:
+        -:   74:    // when call this function, token is "var"
+        -:   75:    //  if(token != TVAR){
+        -:   76:    //      error("Keyword 'var' is not found in variable_declaration\n");
+        -:   77:    //  }
+       70:   78:    token = scan();
+call    0 returned 100%
+       70:   79:    if (parse_variable_names() == ERROR)
+call    0 returned 96%
+        -:   80:    {
+        -:   81:        // error("Variable name is not found in variable_declaration\n");
+        -:   82:    }
+       67:   83:    if (token != TCOLON)
+branch  0 taken 3% (fallthrough)
+branch  1 taken 97%
+        -:   84:    {
+        2:   85:        error("':' is not found in variable_declaration1\n");
+call    0 returned 0%
+        -:   86:    }
+       65:   87:    token = scan();
+call    0 returned 100%
+       65:   88:    if (parse_type() == ERROR)
+call    0 returned 98%
+        -:   89:    {
+        -:   90:        // error("Type is not found in variable_declaration\n");
+        -:   91:    }
+       64:   92:    if (token != TSEMI)
+branch  0 taken 2% (fallthrough)
+branch  1 taken 98%
+        -:   93:    {
+        1:   94:        error("';' is not found in variable_declaration\n");
+call    0 returned 0%
+        -:   95:    }
+       63:   96:    token = scan();
+call    0 returned 100%
+       94:   97:    while (token == TNAME)
+branch  0 taken 37%
+branch  1 taken 63% (fallthrough)
+        -:   98:    {
+       35:   99:        if (parse_variable_names() == ERROR)
+call    0 returned 97%
+        -:  100:        {
+        -:  101:            // error("Variable name is not found in variable_declaration\n");
+        -:  102:        }
+       34:  103:        if (token != TCOLON)
+branch  0 taken 3% (fallthrough)
+branch  1 taken 97%
+        -:  104:        {
+        1:  105:            error("':' is not found in variable_declaration2\n");
+call    0 returned 0%
+        -:  106:        }
+       33:  107:        token = scan();
+call    0 returned 100%
+       33:  108:        if (parse_type() == ERROR)
+call    0 returned 97%
+        -:  109:        {
+        -:  110:            // error("Type is not found in variable_declaration\n");
+        -:  111:        }
+       32:  112:        if (token != TSEMI)
+branch  0 taken 3% (fallthrough)
+branch  1 taken 97%
+        -:  113:        {
+        1:  114:            error("';' is not found in variable_declaration\n");
+call    0 returned 0%
+        -:  115:        }
+       31:  116:        token = scan();
+call    0 returned 100%
+        -:  117:    }
+       59:  118:    return NOMAL;
+        -:  119:}
+        -:  120:
+function parse_variable_names called 150 returned 96% blocks executed 100%
+      150:  121:int parse_variable_names()
+        -:  122:{
+        -:  123:    // variable_names ::= NAME {"," NAME}
+      150:  124:    if (token != TNAME)
+branch  0 taken 3% (fallthrough)
+branch  1 taken 97%
+        -:  125:    {
+        5:  126:        error("Variable name is not found in variable_names1\n");
+call    0 returned 0%
+        -:  127:    }
+      145:  128:    token = scan();
+call    0 returned 100%
+      203:  129:    while (token == TCOMMA)
+branch  0 taken 29%
+branch  1 taken 71% (fallthrough)
+        -:  130:    {
+       59:  131:        token = scan();
+call    0 returned 100%
+       59:  132:        if (token != TNAME)
+branch  0 taken 2% (fallthrough)
+branch  1 taken 98%
+        -:  133:        {
+        1:  134:            error("Variable name is not found in variable_names2\n");
+call    0 returned 0%
+        -:  135:        }
+       58:  136:        token = scan();
+call    0 returned 100%
+        -:  137:    }
+      144:  138:    return NOMAL;
+        -:  139:}
+        -:  140:
+function parse_type called 130 returned 94% blocks executed 100%
+      130:  141:int parse_type()
+        -:  142:{
+        -:  143:    // type ::= standard_type | array_type
+      130:  144:    if (token == TINTEGER || token == TBOOLEAN || token == TCHAR)
+branch  0 taken 34% (fallthrough)
+branch  1 taken 66%
+branch  2 taken 82% (fallthrough)
+branch  3 taken 18%
+branch  4 taken 67% (fallthrough)
+branch  5 taken 33%
+        -:  145:    {
+      118:  146:        if (parse_standard_type() == ERROR)
+call    0 returned 100%
+        -:  147:        {
+        -:  148:            // error("Standard type is not found in type\n");
+        -:  149:        }
+        -:  150:    }
+       12:  151:    else if (token == TARRAY)
+branch  0 taken 75% (fallthrough)
+branch  1 taken 25%
+        -:  152:    {
+        9:  153:        if (parse_array_type() == ERROR)
+call    0 returned 44%
+        -:  154:        {
+        -:  155:            // error("Array type is not found in type\n");
+        -:  156:        }
+        -:  157:    }
+        -:  158:    else
+        -:  159:    {
+        3:  160:        error("Type is not found in type\n");
+call    0 returned 0%
+        -:  161:    }
+      122:  162:    return NOMAL;
+        -:  163:}
+        -:  164:
+function parse_standard_type called 132 returned 98% blocks executed 100%
+      132:  165:int parse_standard_type()
+        -:  166:{
+        -:  167:    // standard_type ::= "integer" | "boolean" | "char"
+      132:  168:    switch (token)
+branch  0 taken 98% (fallthrough)
+branch  1 taken 2%
+        -:  169:    {
+      130:  170:    case TINTEGER:
+        -:  171:    case TBOOLEAN:
+        -:  172:    case TCHAR:
+      130:  173:        token = scan();
+call    0 returned 100%
+      130:  174:        break;
+        2:  175:    default:
+        2:  176:        error("Standard type is not found in standard_type\n");
+call    0 returned 0%
+        -:  177:    }
+      130:  178:    return NOMAL;
+        -:  179:}
+        -:  180:
+function parse_array_type called 9 returned 44% blocks executed 100%
+        9:  181:int parse_array_type()
+        -:  182:{
+        -:  183:    // array_type ::= "array" "[" NUMBER "]" "of" standard_type
+        -:  184:
+        -:  185:    // when call this function, token is "array"
+        -:  186:    //  if(token != TARRAY){
+        -:  187:    //      error("Keyword 'array' is not found in array_type\n");
+        -:  188:    // }
+        9:  189:    token = scan();
+call    0 returned 100%
+        9:  190:    if (token != TLSQPAREN)
+branch  0 taken 11% (fallthrough)
+branch  1 taken 89%
+        -:  191:    {
+        1:  192:        error("'[' is not found in array_type\n");
+call    0 returned 0%
+        -:  193:    }
+        8:  194:    token = scan();
+call    0 returned 100%
+        8:  195:    if (token != TNUMBER)
+branch  0 taken 12% (fallthrough)
+branch  1 taken 88%
+        -:  196:    {
+        1:  197:        error("Number is not found in array_type\n");
+call    0 returned 0%
+        -:  198:    }
+        7:  199:    token = scan();
+call    0 returned 100%
+        7:  200:    if (token != TRSQPAREN)
+branch  0 taken 14% (fallthrough)
+branch  1 taken 86%
+        -:  201:    {
+        1:  202:        error("']' is not found in array_type\n");
+call    0 returned 0%
+        -:  203:    }
+        6:  204:    token = scan();
+call    0 returned 100%
+        6:  205:    if (token != TOF)
+branch  0 taken 17% (fallthrough)
+branch  1 taken 83%
+        -:  206:    {
+        1:  207:        error("Keyword 'of' is not found in array_type\n");
+call    0 returned 0%
+        -:  208:    }
+        5:  209:    token = scan();
+call    0 returned 100%
+        5:  210:    if (parse_standard_type() == ERROR)
+call    0 returned 80%
+        -:  211:    {
+        -:  212:        // error("Standard type is not found in array_type\n");
+        -:  213:    }
+        4:  214:    return NOMAL;
+        -:  215:}
+        -:  216:
+function parse_subprogram_declaration called 45 returned 47% blocks executed 100%
+       45:  217:int parse_subprogram_declaration()
+        -:  218:{
+        -:  219:    // subprogram_declaration ::= "procedure" NAME [formal_parameters] ";" [variable_declaration] compound_statement ";"
+        -:  220:
+        -:  221:    // when call this function, token is "procedure"
+        -:  222:    //  if(token != TPROCEDURE){
+        -:  223:    //      error("Keyword 'procedure' is not found in subprogram_declaration\n");
+        -:  224:    // }
+       45:  225:    token = scan();
+call    0 returned 100%
+       45:  226:    if (token != TNAME)
+branch  0 taken 2% (fallthrough)
+branch  1 taken 98%
+        -:  227:    {
+        1:  228:        error("Procedure_name is not found in subprogram_declaration\n");
+call    0 returned 0%
+        -:  229:    }
+       44:  230:    token = scan();
+call    0 returned 100%
+       44:  231:    if (token == TLPAREN)
+branch  0 taken 77% (fallthrough)
+branch  1 taken 23%
+        -:  232:    { // it is ok if formal_parameters is not found
+       34:  233:        if (parse_formal_parameters() == ERROR)
+call    0 returned 56%
+        -:  234:        {
+        -:  235:            // error("Formal parameters is not found in subprogram_declaration\n");
+        -:  236:        }
+        -:  237:    }
+       29:  238:    if (token != TSEMI)
+branch  0 taken 14% (fallthrough)
+branch  1 taken 86%
+        -:  239:    {
+        4:  240:        error("';' is not found in subprogram_declaration\n");
+call    0 returned 0%
+        -:  241:    }
+       25:  242:    token = scan();
+call    0 returned 100%
+       25:  243:    if (token == TVAR)
+branch  0 taken 48% (fallthrough)
+branch  1 taken 52%
+        -:  244:    { // it is ok if variable_declaration is not found
+       12:  245:        if (parse_variable_declaration() == ERROR)
+call    0 returned 92%
+        -:  246:        {
+        -:  247:            // error("Variable declaration is not found in subprogram_declaration\n");
+        -:  248:        }
+        -:  249:    }
+       24:  250:    if (parse_compound_statement() == ERROR)
+call    0 returned 92%
+        -:  251:    {
+        -:  252:        // error("Compound statement is not found in subprogram_declaration\n");
+        -:  253:    }
+       22:  254:    if (token != TSEMI)
+branch  0 taken 5% (fallthrough)
+branch  1 taken 95%
+        -:  255:    {
+        1:  256:        error("';' is not found in subprogram_declaration\n");
+call    0 returned 0%
+        -:  257:    }
+       21:  258:    token = scan();
+call    0 returned 100%
+       21:  259:    return NOMAL;
+        -:  260:}
+        -:  261:
+function parse_formal_parameters called 34 returned 56% blocks executed 100%
+       34:  262:int parse_formal_parameters()
+        -:  263:{
+        -:  264:    // formal_parameters ::= "(" variable_names ":" type {";" variable_names ":" type} ")"
+        -:  265:
+        -:  266:    // when call this function, token is "("
+        -:  267:    //  if(token != TLPAREN){
+        -:  268:    //      error("'(' is not found in formal_parameters\n");
+        -:  269:    // }
+       34:  270:    token = scan();
+call    0 returned 100%
+       34:  271:    if (parse_variable_names() == ERROR)
+call    0 returned 97%
+        -:  272:    {
+        -:  273:        // error("Variable name is not found in in formal_parameters\n");
+        -:  274:    }
+       33:  275:    if (token != TCOLON)
+branch  0 taken 3% (fallthrough)
+branch  1 taken 97%
+        -:  276:    {
+        1:  277:        error("':' is not found in formal_parameters\n");
+call    0 returned 0%
+        -:  278:    }
+       32:  279:    token = scan();
+call    0 returned 100%
+       32:  280:    if (parse_type() == ERROR)
+call    0 returned 81%
+        -:  281:    {
+        -:  282:        // error("Type is not found in in formal_parameters\n");
+        -:  283:    }
+       34:  284:    while (token == TSEMI)
+branch  0 taken 32%
+branch  1 taken 68% (fallthrough)
+        -:  285:    {
+       11:  286:        token = scan();
+call    0 returned 100%
+       11:  287:        if (parse_variable_names() == ERROR)
+call    0 returned 91%
+        -:  288:        {
+        -:  289:            // error("Variable name is not found in in formal_parameters\n");
+        -:  290:        }
+       10:  291:        if (token != TCOLON)
+branch  0 taken 10% (fallthrough)
+branch  1 taken 90%
+        -:  292:        {
+        1:  293:            error("':' is not found in formal_parameters in in formal_parameters\n");
+call    0 returned 0%
+        -:  294:        }
+        9:  295:        token = scan();
+call    0 returned 100%
+        9:  296:        if (parse_standard_type() == ERROR)
+call    0 returned 89%
+        -:  297:        {
+        -:  298:            // error("Standard type is not found in formal_parameters\n");
+        -:  299:        }
+        -:  300:    }
+       23:  301:    if (token != TRPAREN)
+branch  0 taken 17% (fallthrough)
+branch  1 taken 83%
+        -:  302:    {
+        4:  303:        error("')' is not found in formal_parameters\n");
+call    0 returned 0%
+        -:  304:    }
+       19:  305:    token = scan();
+call    0 returned 100%
+       19:  306:    return NOMAL;
+        -:  307:}
+        -:  308:
+function parse_compound_statement called 95 returned 64% blocks executed 100%
+       95:  309:int parse_compound_statement()
+        -:  310:{
+        -:  311:    // compound_statement ::= "begin" statement {";" statement} "end"
+       95:  312:    if (token != TBEGIN)
+branch  0 taken 4% (fallthrough)
+branch  1 taken 96%
+        -:  313:    {
+        4:  314:        error("Keyword 'begin' is not found\n");
+call    0 returned 0%
+        -:  315:    }
+       91:  316:    token = scan();
+call    0 returned 100%
+       91:  317:    if (parse_statement() == ERROR)
+call    0 returned 82%
+        -:  318:    {
+        -:  319:        // error("Statement is not found in compound_statement1\n");
+        -:  320:    }
+      211:  321:    while (token == TSEMI)
+branch  0 taken 67%
+branch  1 taken 33% (fallthrough)
+        -:  322:    {
+      141:  323:        token = scan();
+call    0 returned 100%
+      141:  324:        if (parse_statement() == ERROR)
+call    0 returned 96%
+        -:  325:        {
+        -:  326:            // error("Statement is not found in compound_statement2\n");
+        -:  327:        }
+        -:  328:    }
+       70:  329:    if (token != TEND)
+branch  0 taken 13% (fallthrough)
+branch  1 taken 87%
+        -:  330:    {
+        9:  331:        error("Keyword 'end' is not found in compound_statement\n");
+call    0 returned 0%
+        -:  332:    }
+       61:  333:    token = scan();
+call    0 returned 100%
+       61:  334:    return NOMAL;
+        -:  335:}
+        -:  336:
+function parse_statement called 289 returned 93% blocks executed 100%
+      289:  337:int parse_statement()
+        -:  338:{
+        -:  339:    /*
+        -:  340:        statement ::= assignment_statement | condition_statement | iteration_statement |
+        -:  341:                      exit_statement | call_statement | return_statement | input_statement|
+        -:  342:                      output_statement | compound_statement | empty_statement
+        -:  343:    */
+      289:  344:    switch (token)
+branch  0 taken 31%
+branch  1 taken 10%
+branch  2 taken 4%
+branch  3 taken 2%
+branch  4 taken 9%
+branch  5 taken 1%
+branch  6 taken 4%
+branch  7 taken 17%
+branch  8 taken 7%
+branch  9 taken 14%
+        -:  345:    {
+       91:  346:    case TNAME:
+       91:  347:        if (parse_assignment_statement() == ERROR)
+call    0 returned 87%
+        -:  348:        {
+        -:  349:            // error("Assignment statement is not found in parse_statement\n");
+        -:  350:        }
+       79:  351:        break;
+       30:  352:    case TIF:
+       30:  353:        if (parse_condition_statement() == ERROR)
+call    0 returned 97%
+        -:  354:        {
+        -:  355:            // error("Condition statement is not found in parse_statement\n");
+        -:  356:        }
+       29:  357:        break;
+       13:  358:    case TWHILE:
+       13:  359:        if (parse_iteration_statement() == ERROR)
+call    0 returned 92%
+        -:  360:        {
+        -:  361:            // error("Iteration statement is not found in parse_statement\n");
+        -:  362:        }
+       12:  363:        break;
+        5:  364:    case TBREAK:
+        5:  365:        if (parse_exit_statement() == ERROR)
+call    0 returned 100%
+        -:  366:        {
+        -:  367:            // error("Exit statement is not found in parse_statement\n");
+        -:  368:        }
+        5:  369:        break;
+       27:  370:    case TCALL:
+       27:  371:        if (parse_call_statement() == ERROR)
+call    0 returned 89%
+        -:  372:        {
+        -:  373:            // error("Call statement is not found in parse_statement\n");
+        -:  374:        }
+       24:  375:        break;
+        2:  376:    case TRETURN:
+        2:  377:        if (parse_return_statement() == ERROR)
+call    0 returned 100%
+        -:  378:        {
+        -:  379:            // error("Return statement is not found in parse_statement\n");
+        -:  380:        }
+        2:  381:        break;
+       11:  382:    case TREAD:
+        -:  383:    case TREADLN:
+       11:  384:        if (parse_input_statement() == ERROR)
+call    0 returned 82%
+        -:  385:        {
+        -:  386:            // error("Input statement is not found in parse_statement\n");
+        -:  387:        }
+        9:  388:        break;
+       49:  389:    case TWRITE:
+        -:  390:    case TWRITELN:
+       49:  391:        if (parse_output_statement() == ERROR)
+call    0 returned 96%
+        -:  392:        {
+        -:  393:            // error("Output statement is not found in parse_statement\n");
+        -:  394:        }
+       47:  395:        break;
+       21:  396:    case TBEGIN:
+       21:  397:        if (parse_compound_statement() == ERROR)
+call    0 returned 100%
+        -:  398:        {
+        -:  399:            // error("Compound statement is not found in parse_statement\n");
+        -:  400:        }
+       21:  401:        break;
+       40:  402:    default:
+       40:  403:        parse_empty_statement();
+call    0 returned 100%
+        -:  404:    }
+      268:  405:    return NOMAL;
+        -:  406:}
+        -:  407:
+function parse_condition_statement called 30 returned 97% blocks executed 100%
+       30:  408:int parse_condition_statement()
+        -:  409:{
+        -:  410:    // condition_statement ::= "if" expression "then" statement ["else" statement]
+        -:  411:
+        -:  412:    // when call this function, token is "if"
+        -:  413:    //  if(token != TIF){
+        -:  414:    //      error("Keyword 'if' is not found in condition_statement\n");
+        -:  415:    // }
+       30:  416:    token = scan();
+call    0 returned 100%
+       30:  417:    if (parse_expression() == ERROR)
+call    0 returned 100%
+        -:  418:    {
+        -:  419:        // error("Expression is not found in condition_statement\n");
+        -:  420:    }
+       30:  421:    if (token != TTHEN)
+branch  0 taken 3% (fallthrough)
+branch  1 taken 97%
+        -:  422:    {
+        1:  423:        error("Keyword 'then' is not found in condition_statement\n");
+call    0 returned 0%
+        -:  424:    }
+       29:  425:    token = scan();
+call    0 returned 100%
+       29:  426:    if (parse_statement() == ERROR)
+call    0 returned 100%
+        -:  427:    {
+        -:  428:        // error("Statement is not found in condition_statement\n");
+        -:  429:    }
+       29:  430:    if (token == TELSE)
+branch  0 taken 55% (fallthrough)
+branch  1 taken 45%
+        -:  431:    { // it is ok if there is no else statement
+       16:  432:        token = scan();
+call    0 returned 100%
+       16:  433:        if (token != TIF)
+branch  0 taken 56% (fallthrough)
+branch  1 taken 44%
+        -:  434:        {
+        9:  435:            print_indent();
+call    0 returned 100%
+        -:  436:        }
+       16:  437:        if (parse_statement() == ERROR)
+call    0 returned 100%
+        -:  438:        {
+        -:  439:            // error("Statement is not found in condition_statement\n");
+        -:  440:        }
+        -:  441:    }
+       29:  442:    return NOMAL;
+        -:  443:}
+        -:  444:
+function parse_iteration_statement called 13 returned 92% blocks executed 100%
+       13:  445:int parse_iteration_statement()
+        -:  446:{
+        -:  447:    // iteration_statement ::= "while" expression "do" statement
+        -:  448:
+        -:  449:    // when call this function, token is "while"
+        -:  450:    //  if(token != TWHILE){
+        -:  451:    //      error("Keyword 'while' is not found in iteration_statement\n");
+        -:  452:    // }
+       13:  453:    token = scan();
+call    0 returned 100%
+       13:  454:    if (parse_expression() == ERROR)
+call    0 returned 100%
+        -:  455:    {
+        -:  456:        // error("Expression is not found in iteration_statement\n");
+        -:  457:    }
+       13:  458:    if (token != TDO)
+branch  0 taken 8% (fallthrough)
+branch  1 taken 92%
+        -:  459:    {
+        1:  460:        error("Keyword 'do' is not found in iteration_statement\n");
+call    0 returned 0%
+        -:  461:    }
+       12:  462:    token = scan();
+call    0 returned 100%
+       12:  463:    if (parse_statement() == ERROR)
+call    0 returned 100%
+        -:  464:    {
+        -:  465:        // error("Statement is not found in iteration_statement\n");
+        -:  466:    }
+       12:  467:    return NOMAL;
+        -:  468:}
+        -:  469:
+function parse_exit_statement called 5 returned 100% blocks executed 100%
+        5:  470:int parse_exit_statement()
+        -:  471:{
+        -:  472:    // exit_statement ::= "break"
+        -:  473:
+        -:  474:    // when call this function, token is "break"
+        -:  475:    //  if(token != TBREAK){
+        -:  476:    //      error("Keyword 'break' is not found in exit_statement\n");
+        -:  477:    // }
+        5:  478:    token = scan();
+call    0 returned 100%
+        5:  479:    return NOMAL;
+        -:  480:}
+        -:  481:
+function parse_call_statement called 27 returned 89% blocks executed 100%
+       27:  482:int parse_call_statement()
+        -:  483:{
+        -:  484:    // call_statement ::= "call" NAME ["(" expressions ")"]
+        -:  485:
+        -:  486:    // when call this function, token is "call"
+        -:  487:    //  if(token != TCALL){
+        -:  488:    //      error("Keyword 'call' is not found in call_statement\n");
+        -:  489:    // }
+       27:  490:    token = scan();
+call    0 returned 100%
+       27:  491:    if (token != TNAME)
+branch  0 taken 4% (fallthrough)
+branch  1 taken 96%
+        -:  492:    {
+        1:  493:        error("Procedure name is not found in call_statement\n");
+call    0 returned 0%
+        -:  494:    }
+       26:  495:    token = scan();
+call    0 returned 100%
+       26:  496:    if (token == TLPAREN)
+branch  0 taken 85% (fallthrough)
+branch  1 taken 15%
+        -:  497:    { // it is ok if there is no expression
+       22:  498:        token = scan();
+call    0 returned 100%
+       22:  499:        if (parse_expressions() == ERROR)
+call    0 returned 100%
+        -:  500:        {
+        -:  501:            // error("Expressions are not found in call_statement\n");
+        -:  502:        }
+       22:  503:        if (token != TRPAREN)
+branch  0 taken 9% (fallthrough)
+branch  1 taken 91%
+        -:  504:        {
+        2:  505:            error("')' is not found in call_statement\n");
+call    0 returned 0%
+        -:  506:        }
+       20:  507:        token = scan();
+call    0 returned 100%
+        -:  508:    }
+       24:  509:    return NOMAL;
+        -:  510:}
+        -:  511:
+function parse_expressions called 22 returned 100% blocks executed 100%
+       22:  512:int parse_expressions()
+        -:  513:{
+        -:  514:    // expressions ::= expression {"," expression}
+       22:  515:    if (parse_expression() == ERROR)
+call    0 returned 100%
+        -:  516:    {
+        -:  517:        // error("Expression is not found in expressions\n");
+        -:  518:    }
+       62:  519:    while (token == TCOMMA)
+branch  0 taken 65%
+branch  1 taken 35% (fallthrough)
+        -:  520:    {
+       40:  521:        token = scan();
+call    0 returned 100%
+       40:  522:        if (parse_expression() == ERROR)
+call    0 returned 100%
+        -:  523:        {
+        -:  524:            // error("Expression is not found in expressions\n");
+        -:  525:        }
+        -:  526:    }
+       22:  527:    return NOMAL;
+        -:  528:}
+        -:  529:
+function parse_return_statement called 2 returned 100% blocks executed 100%
+        2:  530:int parse_return_statement()
+        -:  531:{
+        -:  532:    // return_statement ::= "return"
+        -:  533:
+        -:  534:    // when call this function, token is "return"
+        -:  535:    //  if(token != TRETURN){
+        -:  536:    //      error("Keyword 'return' is not found in return_statement\n");
+        -:  537:    // }
+        2:  538:    token = scan();
+call    0 returned 100%
+        -:  539:    // return NOMAL;
+        2:  540:}
+        -:  541:
+function parse_assignment_statement called 91 returned 87% blocks executed 100%
+       91:  542:int parse_assignment_statement()
+        -:  543:{
+        -:  544:    // assignment_statement ::= variable ":=" expression
+       91:  545:    if (parse_variable() == ERROR)
+call    0 returned 91%
+        -:  546:    {
+        -:  547:        // error("Variable name is not found in return_statement\n");
+        -:  548:    }
+       83:  549:    if (token != TASSIGN)
+branch  0 taken 2% (fallthrough)
+branch  1 taken 98%
+        -:  550:    {
+        2:  551:        error("':=' is not found in return_statement\n");
+call    0 returned 0%
+        -:  552:    }
+       81:  553:    token = scan();
+call    0 returned 99%
+       80:  554:    if (parse_expression() == ERROR)
+call    0 returned 99%
+        -:  555:    {
+        -:  556:        // error("Expression is not found in return_statement\n");
+        -:  557:    }
+       79:  558:    return NOMAL;
+        -:  559:}
+        -:  560:
+function parse_variable called 316 returned 97% blocks executed 100%
+      316:  561:int parse_variable()
+        -:  562:{
+        -:  563:    // variable = NAME ["[" expression "]"]
+      316:  564:    if (token != TNAME)
+branch  0 taken 1% (fallthrough)
+branch  1 taken 100%
+        -:  565:    {
+        1:  566:        error("Variable name is not found in variable\n");
+call    0 returned 0%
+        -:  567:    }
+      315:  568:    token = scan();
+call    0 returned 100%
+      315:  569:    if (token == TLSQPAREN)
+branch  0 taken 4% (fallthrough)
+branch  1 taken 96%
+        -:  570:    { // it is ok if there is no [ expression ]
+       13:  571:        token = scan();
+call    0 returned 100%
+       13:  572:        if (parse_expression() == ERROR)
+call    0 returned 46%
+        -:  573:        {
+        -:  574:            // error("Expression is not found in variable\n");
+        -:  575:        }
+        6:  576:        if (token != TRSQPAREN)
+branch  0 taken 17% (fallthrough)
+branch  1 taken 83%
+        -:  577:        {
+        1:  578:            error("']' is not found in variable\n");
+call    0 returned 0%
+        -:  579:        }
+        5:  580:        token = scan();
+call    0 returned 100%
+        -:  581:    }
+      307:  582:    return NOMAL;
+        -:  583:}
+        -:  584:
+function parse_expression called 254 returned 97% blocks executed 100%
+      254:  585:int parse_expression()
+        -:  586:{
+        -:  587:    // expression ::= simple_expression {relational_operator simple_expression}
+      254:  588:    if (parse_simple_expression() == ERROR)
+call    0 returned 97%
+        -:  589:    {
+        -:  590:        // error("Simple expression is not found in expression\n");
+        -:  591:    }
+      246:  592:    if (token == TEQUAL || token == TNOTEQ || token == TLE || token == TLEEQ || token == TGR || token == TGREQ)
+branch  0 taken 91% (fallthrough)
+branch  1 taken 9%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 1%
+branch  4 taken 96% (fallthrough)
+branch  5 taken 4%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0%
+branch  8 taken 96% (fallthrough)
+branch  9 taken 4%
+branch 10 taken 2% (fallthrough)
+branch 11 taken 98%
+        -:  593:    {
+       45:  594:        token = scan();
+call    0 returned 100%
+       45:  595:        if (parse_simple_expression() == ERROR)
+call    0 returned 100%
+        -:  596:        {
+        -:  597:            // error("Simple expression is not found in expression\n");
+        -:  598:        }
+        -:  599:    }
+        -:  600:
+      246:  601:    return NOMAL;
+        -:  602:}
+        -:  603:
+function parse_simple_expression called 299 returned 97% blocks executed 100%
+      299:  604:int parse_simple_expression()
+        -:  605:{
+        -:  606:    // simple_expression ::= ["+"|"-"] term {adding_operator term}
+      299:  607:    if (token == TPLUS || token == TMINUS)
+branch  0 taken 100% (fallthrough)
+branch  1 taken 1%
+branch  2 taken 4% (fallthrough)
+branch  3 taken 96%
+        -:  608:    { // it is ok if there is no sign
+       12:  609:        token = scan();
+call    0 returned 100%
+        -:  610:    }
+      299:  611:    if (parse_term() == ERROR)
+call    0 returned 97%
+        -:  612:    {
+        -:  613:        // error("Term is not found in simple_expression\n");
+        -:  614:    }
+      291:  615:    if (token == TPLUS || token == TMINUS || token == TOR)
+branch  0 taken 96% (fallthrough)
+branch  1 taken 4%
+branch  2 taken 97% (fallthrough)
+branch  3 taken 3%
+branch  4 taken 1% (fallthrough)
+branch  5 taken 99%
+        -:  616:    {
+       48:  617:        while (token == TPLUS || token == TMINUS || token == TOR)
+branch  0 taken 25%
+branch  1 taken 75% (fallthrough)
+branch  2 taken 22%
+branch  3 taken 78% (fallthrough)
+branch  4 taken 14%
+branch  5 taken 86% (fallthrough)
+        -:  618:        {
+       24:  619:            token = scan();
+call    0 returned 100%
+       24:  620:            if (parse_term() == ERROR)
+call    0 returned 100%
+        -:  621:            {
+        -:  622:                // error("Term is not found in simple_expression\n");
+        -:  623:            }
+        -:  624:        }
+        -:  625:    }
+      291:  626:    return NOMAL;
+        -:  627:}
+        -:  628:
+function parse_term called 323 returned 98% blocks executed 100%
+      323:  629:int parse_term()
+        -:  630:{
+        -:  631:    // term ::= factor {multiplying_operator factor}
+      323:  632:    if (parse_factor() == ERROR)
+call    0 returned 98%
+        -:  633:    {
+        -:  634:        // error("Factor is not found in term\n");
+        -:  635:        // return(ERROR);
+        -:  636:    }
+        -:  637:
+      333:  638:    while (token == TSTAR || token == TAND || token == TDIV)
+branch  0 taken 2%
+branch  1 taken 98% (fallthrough)
+branch  2 taken 0%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 3%
+branch  5 taken 97% (fallthrough)
+        -:  639:    {
+       18:  640:        token = scan();
+call    0 returned 100%
+       18:  641:        if (parse_factor() == ERROR)
+call    0 returned 100%
+        -:  642:        {
+        -:  643:            // error("Factor is not found in term\n");
+        -:  644:        }
+        -:  645:    }
+      315:  646:    return NOMAL;
+        -:  647:}
+        -:  648:
+function parse_factor called 342 returned 98% blocks executed 100%
+      342:  649:int parse_factor()
+        -:  650:{
+        -:  651:    // factor ::= variable | constant | "(" expression ")" | "not" factor | standard_type "(" expression ")"
+      342:  652:    if (token == TNAME)
+branch  0 taken 62% (fallthrough)
+branch  1 taken 38%
+        -:  653:    {
+      213:  654:        if (parse_variable() == ERROR)
+call    0 returned 100%
+        -:  655:        {
+        -:  656:            // error("Variable is not found in factor\n");
+        -:  657:        }
+        -:  658:    }
+      129:  659:    else if (token == TNUMBER || token == TSTRING || token == TFALSE || token == TTRUE)
+branch  0 taken 44% (fallthrough)
+branch  1 taken 56%
+branch  2 taken 74% (fallthrough)
+branch  3 taken 26%
+branch  4 taken 90% (fallthrough)
+branch  5 taken 10%
+branch  6 taken 11% (fallthrough)
+branch  7 taken 89%
+        -:  660:    {
+       95:  661:        token = scan();
+call    0 returned 100%
+        -:  662:    }
+       34:  663:    else if (token == TLPAREN)
+branch  0 taken 47% (fallthrough)
+branch  1 taken 53%
+        -:  664:    {
+       16:  665:        token = scan();
+call    0 returned 100%
+       16:  666:        if (parse_expression() == ERROR)
+call    0 returned 100%
+        -:  667:        {
+        -:  668:            // error("Expression is not found in factor\n");
+        -:  669:        }
+       16:  670:        if (token != TRPAREN)
+branch  0 taken 6% (fallthrough)
+branch  1 taken 94%
+        -:  671:        {
+        1:  672:            error("')' is not found in factor\n");
+call    0 returned 0%
+        -:  673:        }
+       15:  674:        token = scan();
+call    0 returned 100%
+        -:  675:    }
+       18:  676:    else if (token == TNOT)
+branch  0 taken 6% (fallthrough)
+branch  1 taken 94%
+        -:  677:    {
+        1:  678:        token = scan();
+call    0 returned 100%
+        1:  679:        if (parse_factor() == ERROR)
+call    0 returned 100%
+        -:  680:        {
+        -:  681:            // error("Factor is not found in factor\n");
+        -:  682:        }
+        -:  683:    }
+       17:  684:    else if (token == TINTEGER || token == TBOOLEAN || token == TCHAR)
+branch  0 taken 47% (fallthrough)
+branch  1 taken 53%
+branch  2 taken 88% (fallthrough)
+branch  3 taken 12%
+branch  4 taken 29% (fallthrough)
+branch  5 taken 71%
+        -:  685:    {
+       12:  686:        token = scan();
+call    0 returned 100%
+       12:  687:        if (token != TLPAREN)
+branch  0 taken 8% (fallthrough)
+branch  1 taken 92%
+        -:  688:        {
+        1:  689:            error("'(' is not found in factor\n");
+call    0 returned 0%
+        -:  690:        }
+       11:  691:        token = scan();
+call    0 returned 100%
+       11:  692:        if (parse_expression() == ERROR)
+call    0 returned 100%
+        -:  693:        {
+        -:  694:            // error("Expression is not found in factor\n");
+        -:  695:        }
+       11:  696:        if (token != TRPAREN)
+branch  0 taken 9% (fallthrough)
+branch  1 taken 91%
+        -:  697:        {
+        1:  698:            error("')' is not found in factor\n");
+call    0 returned 0%
+        -:  699:        }
+       10:  700:        token = scan();
+call    0 returned 100%
+        -:  701:    }
+        -:  702:    else
+        -:  703:    {
+        5:  704:        error("Factor is not found in factor\n");
+call    0 returned 0%
+        -:  705:    }
+      334:  706:    return NOMAL;
+        -:  707:}
+        -:  708:
+        -:  709:/***
+        -:  710:
+        -:  711:// instead of parse_standard_type, NUMBER, STRING, FALSE, TRUE are used
+        -:  712:int parse_constant(){
+        -:  713:    // constant ::= "NUMBER" | "false" | "true" | "STRING"
+        -:  714:    if(token == TNUMBER || token == TSTRING || token == TFALSE || token == TTRUE){
+        -:  715:        token = scan();
+        -:  716:        return NOMAL;
+        -:  717:    }
+        -:  718:    error("Constant is not found in constant\n");
+        -:  719:}
+        -:  720:
+        -:  721:// instead of parse_standard_type, INTEGER, BOOLEAN, CHAR are used
+        -:  722:int parse_multiplicative_operator(){
+        -:  723:    // multiplicative_operator ::= "*" | "div" | "and"
+        -:  724:    if(token == TSTAR || token == TDIV || token == TAND){
+        -:  725:        token = scan();
+        -:  726:        return NOMAL;
+        -:  727:    }
+        -:  728:    error("Multiplicative operator is not found in multiplicative_operator\n");
+        -:  729:}
+        -:  730:
+        -:  731:// instead of parse_standard_type, TPLUS, TMINUS, TOR are used
+        -:  732:int parse_additive_operator(){
+        -:  733:    // adding_operator ::= "+" | "-" | "or"
+        -:  734:    if(token == TPLUS || token == TMINUS || token == TOR){
+        -:  735:        token = scan();
+        -:  736:        return NOMAL;
+        -:  737:    }
+        -:  738:    error("Additive operator is not found in additive_operator\n");
+        -:  739:    return ERROR;
+        -:  740:}
+        -:  741:
+        -:  742:// instead of parse_standard_type, TEQUAL, TNOTEQ, TLE, TLEEQ, TGR, TGREQ are used
+        -:  743:int parse_relational_operator(){
+        -:  744:    // relational_operator ::= "=" | "<>" | "<" | "<=" | ">" | ">="
+        -:  745:    if(token == TEQUAL || token == TNOTEQ || token == TLE || token == TLEEQ || token == TGR || token == TGREQ){
+        -:  746:        token = scan();
+        -:  747:        return NOMAL;
+        -:  748:    }
+        -:  749:    error("Relational operator is not found in relational_operator\n");
+        -:  750:    return ERROR;
+        -:  751:}
+        -:  752:
+        -:  753:***/
+        -:  754:
+function parse_input_statement called 11 returned 82% blocks executed 100%
+       11:  755:int parse_input_statement()
+        -:  756:{
+        -:  757:    // input_statement ::= ("read" | "readln") ["(" variable {"," variable} ")"]
+        -:  758:
+        -:  759:    // when call this function, token is already "read" or "readln"
+        -:  760:    // if(token != TREAD && token != TREADLN){
+        -:  761:    //     error("Keyword 'read' or 'readln' is not found in input_statement\n");
+        -:  762:    // }
+       11:  763:    token = scan();
+call    0 returned 100%
+       11:  764:    if (token == TLPAREN)
+branch  0 taken 91% (fallthrough)
+branch  1 taken 9%
+        -:  765:    { // it is ok if there is no variable
+       10:  766:        token = scan();
+call    0 returned 100%
+       10:  767:        if (parse_variable() == ERROR)
+call    0 returned 90%
+        -:  768:        {
+        -:  769:            // error("Variable is not found in input_statement\n");
+        -:  770:        }
+       11:  771:        while (token == TCOMMA)
+branch  0 taken 18%
+branch  1 taken 82% (fallthrough)
+        -:  772:        {
+        2:  773:            token = scan();
+call    0 returned 100%
+        2:  774:            if (parse_variable() == ERROR)
+call    0 returned 100%
+        -:  775:            {
+        -:  776:                // error("Variable is not found in input_statement\n");
+        -:  777:            }
+        -:  778:        }
+        9:  779:        if (token != TRPAREN)
+branch  0 taken 11% (fallthrough)
+branch  1 taken 89%
+        -:  780:        {
+        1:  781:            error("')' is not found in input_statement\n");
+call    0 returned 0%
+        -:  782:        }
+        8:  783:        token = scan();
+call    0 returned 100%
+        -:  784:    }
+        9:  785:    return NOMAL;
+        -:  786:}
+        -:  787:
+function parse_output_statement called 49 returned 96% blocks executed 100%
+       49:  788:int parse_output_statement()
+        -:  789:{
+        -:  790:    // output_statement ::= ("write" | "writeln") ["(" output_format {"," output_format} ")"]
+        -:  791:
+        -:  792:    // when call this function, token is TWRITE or TWRITELN
+        -:  793:    // if(token != TWRITE && token != TWRITELN){
+        -:  794:    //     error("Keyword 'write' or 'writeln' is not found in output_statement\n");
+        -:  795:    // }
+       49:  796:    token = scan();
+call    0 returned 100%
+       49:  797:    if (token == TLPAREN)
+branch  0 taken 92% (fallthrough)
+branch  1 taken 8%
+        -:  798:    { // it is ok if there is no output_format
+       45:  799:        token = scan();
+call    0 returned 100%
+       45:  800:        if (parse_output_format() == ERROR)
+call    0 returned 98%
+        -:  801:        {
+        -:  802:            // error("Output format is not found in output_statement\n");
+        -:  803:        }
+       70:  804:        while (token == TCOMMA)
+branch  0 taken 37%
+branch  1 taken 63% (fallthrough)
+        -:  805:        {
+       26:  806:            token = scan();
+call    0 returned 100%
+       26:  807:            if (parse_output_format() == ERROR)
+call    0 returned 100%
+        -:  808:            {
+        -:  809:                // error("Output format is not found in output_statement\n");
+        -:  810:            }
+        -:  811:        }
+       44:  812:        if (token != TRPAREN)
+branch  0 taken 2% (fallthrough)
+branch  1 taken 98%
+        -:  813:        {
+        1:  814:            error("')' is not found in output_statement\n");
+call    0 returned 0%
+        -:  815:        }
+       43:  816:        token = scan();
+call    0 returned 100%
+        -:  817:    }
+       47:  818:    return NOMAL;
+        -:  819:}
+        -:  820:
+function parse_output_format called 71 returned 99% blocks executed 100%
+       71:  821:int parse_output_format()
+        -:  822:{
+        -:  823:    // output_format ::= expression [":" "NUMBER"] | "STRING"
+       71:  824:    if (token == TSTRING)
+branch  0 taken 59% (fallthrough)
+branch  1 taken 41%
+        -:  825:    {
+       42:  826:        token = scan();
+call    0 returned 100%
+        -:  827:    }
+        -:  828:    else
+        -:  829:    {
+       29:  830:        if (parse_expression() == ERROR)
+call    0 returned 100%
+        -:  831:        {
+        -:  832:            // error("Expression is not found in output_format\n");
+        -:  833:        }
+       29:  834:        if (token == TCOLON)
+branch  0 taken 7% (fallthrough)
+branch  1 taken 93%
+        -:  835:        { // it is ok if there is no number
+        2:  836:            token = scan();
+call    0 returned 100%
+        2:  837:            if (token != TNUMBER)
+branch  0 taken 50% (fallthrough)
+branch  1 taken 50%
+        -:  838:            {
+        1:  839:                error("Number is not found in output_format\n");
+call    0 returned 0%
+        -:  840:            }
+        1:  841:            token = scan();
+call    0 returned 100%
+        -:  842:        }
+        -:  843:    }
+       70:  844:    return NOMAL;
+        -:  845:}
+        -:  846:
+function parse_empty_statement called 40 returned 100% blocks executed 100%
+       40:  847:int parse_empty_statement()
+        -:  848:{
+        -:  849:    // empty_statement ::= ε
+       40:  850:    return NOMAL;
+        -:  851:}
