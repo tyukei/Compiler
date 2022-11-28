@@ -8,6 +8,7 @@ FILE *fp = NULL;
 
 int init_scan(char *filename) { /* open file if it suceed return 0 and if not return -1 */
 	if ((fp = fopen(filename, "r+")) == NULL) {
+		printf("cannnot open filename");
 		return ERROR;
 	} else {
 		cbuf = fgetc(fp);
@@ -26,17 +27,13 @@ int scan(void) {
 			}
 			num_line++;
 			break;
-		case '\n': //end of line Unix,Mac
+		case '\n': //end of line
 			cbuf = fgetc(fp);
 			if(cbuf == '\r'){
 				cbuf = fgetc(fp);
 			}
 			num_line++;
-			break;		
-		// case '\n': //end of line Unix,Mac
-		// 	cbuf = fgetc(fp);
-		// 	num_line++;
-		// 	break;	
+			break;
 		case ' ': //space
 		case '\t': //tab
 			cbuf = fgetc(fp);
@@ -47,15 +44,14 @@ int scan(void) {
 		case '/':
 			cbuf = fgetc(fp);
 			if (cbuf == '*') {		
-				UntilComment();
-				break;
+			UntilComment();
 			}else{
 				error("/ is not undeclared\n");
 				return ERROR;
 			}
 			break;
 		case '\'':
-			UntilString();
+			UntilFun('\'');
 			return TSTRING;
 			break;
 		default:
@@ -68,10 +64,6 @@ int scan(void) {
 		int i, j = 0;
 		for (i = 0; (isChar(cbuf) + isNumber(cbuf)) >= 1; i++) {
 			string_attr[i] = cbuf;
-			if(i >= MAXSTRSIZE){
-				error("string is too long\n");
-				return ERROR;
-			}
 			cbuf = fgetc(fp);
 			count++;
 		}
@@ -79,7 +71,7 @@ int scan(void) {
 		id_countup(string_attr);
 		for (j = 0; j <= NUMOFTOKEN; j++) { //check whether keyword or name
 			if (strcmp(string_attr, key[j].keyword) == 0) {
-				while (count >= 0) {//init string_attr
+				while (count >= 0) {
 					string_attr[count] = '\0';
 					count--;
 				}
@@ -87,7 +79,7 @@ int scan(void) {
 				break;
 			}
 		}
-		while (count >= 0) { //init string_attr
+		while (count >= 0) {
 			string_attr[count] = '\0';
 			count--;
 		}
@@ -95,13 +87,9 @@ int scan(void) {
 	} else if (isNumber(cbuf)) { //if number, read them by end
 		int i = 0;
 		num_attr = 0;
-		for (i = 0; isNumber(cbuf)>0; i++) {
-			num_attr = num_attr * 10 + (cbuf-48);
+		for (i = 0; isNumber(cbuf); i++) {
+			num_attr = num_attr * 10 + cbuf;
 			cbuf = fgetc(fp);
-			if((num_attr > MAXINTSIZE)||(num_attr < 0)){
-				error("number is too long\n");
-				return ERROR;
-			}
 		}
 		return TNUMBER;
 	} else {
@@ -117,7 +105,7 @@ int scan(void) {
 		}
 
 		char dst[100];
-		snprintf(dst, sizeof dst, "%c is undeclared.\n", cbuf);
+		snprintf(dst, sizeof dst, "%c is undeclared\n", cbuf);
 		error(dst);
 		return ERROR;
 	}
@@ -140,13 +128,9 @@ int isChar(int c) {
 }
 
 void UntilFun(int c) {
-	char cin = cbuf;
 	cbuf = fgetc(fp);
 	while (cbuf != c) {
-		if (cbuf == EOF) {
-			char mes[100];
-			sprintf(mes, "%c is undeclared. %c is expected.\n",cin,c);
-			error(mes);
+		if (c == EOF) {
 			break;
 		}
 		cbuf = fgetc(fp);
@@ -165,24 +149,6 @@ void UntilComment(void) {
 			}
 		}
 		if (cbuf == EOF) {
-			error("/* is undeclared.another */ is expected.\n");
-			break;
-		}
-	}
-}
-
-void UntilString(void) {
-	while (1) {
-		cbuf = fgetc(fp);
-		if (cbuf == '\'') {
-			cbuf = fgetc(fp);
-			if (cbuf != '\'') {
-				cbuf = fgetc(fp);
-				break;
-			}
-		}
-		if (cbuf == EOF) {
-			error("\' is undeclared.another \' is expected.\n");
 			break;
 		}
 	}

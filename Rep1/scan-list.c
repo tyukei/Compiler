@@ -1,4 +1,6 @@
 #include "token-list.h"
+#define ERROR (-1)
+#define EOFCODE (-2)
 int cbuf, num_line = 0;
 int num_attr;
 char string_attr[MAXSTRSIZE];
@@ -7,7 +9,7 @@ FILE *fp = NULL;
 int init_scan(char *filename) { /* open file if it suceed return 0 and if not return -1 */
 	if ((fp = fopen(filename, "r+")) == NULL) {
 		printf("cannnot open filename");
-		return -1;
+		return ERROR;
 	} else {
 		cbuf = fgetc(fp);
 		return 0;
@@ -40,10 +42,16 @@ int scan(void) {
 			UntilFun('}');
 			break;
 		case '/':
+			cbuf = fgetc(fp);
+			if (cbuf == '*') {		
 			UntilComment();
+			}else{
+				error("/ is not undeclared\n");
+				return ERROR;
+			}
 			break;
 		case '\'':
-			UntilFun('\'');
+			UntilString();
 			return TSTRING;
 			break;
 		default:
@@ -92,8 +100,15 @@ int scan(void) {
 				return i;
 			}
 		}
+		if(cbuf == EOF){
+			return EOFCODE;
+		}
+
+		char dst[100];
+		snprintf(dst, sizeof dst, "%c is undeclared\n", cbuf);
+		error(dst);
+		return ERROR;
 	}
-	return -1;
 }
 
 int isNumber(int c) {
@@ -124,20 +139,33 @@ void UntilFun(int c) {
 }
 
 void UntilComment(void) {
-	cbuf = fgetc(fp);
-	if (cbuf == '*') {
-		while (1) {
+	while (1) {
+		cbuf = fgetc(fp);
+		if (cbuf == '*') {
 			cbuf = fgetc(fp);
-			if (cbuf == '*') {
+			if (cbuf == '/') {
 				cbuf = fgetc(fp);
-				if (cbuf == '/') {
-					cbuf = fgetc(fp);
-					break;
-				}
-			}
-			if (cbuf == EOF) {
 				break;
 			}
+		}
+		if (cbuf == EOF) {
+			break;
+		}
+	}
+}
+
+void UntilString(void) {
+	while (1) {
+		cbuf = fgetc(fp);
+		if (cbuf == '\'') {
+			cbuf = fgetc(fp);
+			if (cbuf != '\'') {
+				cbuf = fgetc(fp);
+				break;
+			}
+		}
+		if (cbuf == EOF) {
+			break;
 		}
 	}
 }

@@ -1,6 +1,5 @@
 \documentclass[a4j]{jsarticle}
 \usepackage{color}
-\usepackage{multicol}
 \usepackage[usenames,dvipsnames]{xcolor}
 \usepackage{listings,jlisting}
 \usepackage[dvipdfmx]{graphicx}
@@ -8,6 +7,17 @@
 \usepackage{fancyhdr}
 \usepackage{float}
 \usepackage{pdfpages}
+\usepackage[dvipdfmx]{hyperref}
+\usepackage{pxjahyper}
+\hypersetup{% hyperrefオプションリスト
+setpagesize=false,
+ bookmarksnumbered=true,%
+ bookmarksopen=true,%
+ colorlinks=false,%リンクの枠
+ linkbordercolor=red,%リンクの枠の色
+ linkcolor=blue,%リンクの色
+ citecolor=red,
+}
 
 
 \lstset{

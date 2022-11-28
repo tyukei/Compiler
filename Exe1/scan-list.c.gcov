@@ -1,0 +1,309 @@
+        -:    0:Source:scan-list.c
+        -:    0:Graph:scan-list.gcno
+        -:    0:Data:scan-list.gcda
+        -:    0:Runs:10
+        -:    1:#include "token-list.h"
+        -:    2:#define ERROR (-1)
+        -:    3:#define EOFCODE (-2)
+        -:    4:int cbuf, num_line = 0;
+        -:    5:int num_attr;
+        -:    6:char string_attr[MAXSTRSIZE];
+        -:    7:FILE *fp = NULL;
+        -:    8:
+function init_scan called 10 returned 100% blocks executed 100%
+       10:    9:int init_scan(char *filename) { /* open file if it suceed return 0 and if not return -1 */
+       10:   10:	if ((fp = fopen(filename, "r+")) == NULL) {
+call    0 returned 100%
+branch  1 taken 10% (fallthrough)
+branch  2 taken 90%
+        1:   11:		return ERROR;
+        -:   12:	} else {
+        9:   13:		cbuf = fgetc(fp);
+call    0 returned 100%
+        9:   14:		return 0;
+        -:   15:	}
+        -:   16:}
+        -:   17:
+function scan called 128 returned 95% blocks executed 91%
+      128:   18:int scan(void) {
+      128:   19:	int isSeparator = 1;
+      382:   20:	while (isSeparator) { // if  separator, skip read
+branch  0 taken 69%
+branch  1 taken 31% (fallthrough)
+      262:   21:		switch (cbuf) {
+branch  0 taken 11%
+branch  1 taken 39%
+branch  2 taken 1%
+branch  3 taken 2%
+branch  4 taken 2%
+branch  5 taken 46%
+        -:   22:		// case '\r': //end of line
+        -:   23:		// 	cbuf = fgetc(fp);
+        -:   24:		// 	if(cbuf == '\n'){
+        -:   25:		// 		cbuf = fgetc(fp);
+        -:   26:		// 	}
+        -:   27:		// 	num_line++;
+        -:   28:		// 	break;
+        -:   29:		// case '\n': //end of line Unix,Mac
+        -:   30:		// 	cbuf = fgetc(fp);
+        -:   31:		// 	if(cbuf == '\r'){
+        -:   32:		// 		cbuf = fgetc(fp);
+        -:   33:		// 	}
+        -:   34:		// 	num_line++;
+        -:   35:		// 	break;		
+       29:   36:		case '\n': //end of line Unix,Mac
+       29:   37:			cbuf = fgetc(fp);
+call    0 returned 100%
+       29:   38:			num_line++;
+       29:   39:			break;	
+      103:   40:		case ' ': //space
+        -:   41:		case '\t': //tab
+      103:   42:			cbuf = fgetc(fp);
+call    0 returned 100%
+      103:   43:			break;
+        2:   44:		case '{': //coment {...}
+        2:   45:			UntilFun('}');
+call    0 returned 50%
+        1:   46:			break;
+        4:   47:		case '/':
+        4:   48:			cbuf = fgetc(fp);
+call    0 returned 100%
+        4:   49:			if (cbuf == '*') {		
+branch  0 taken 75% (fallthrough)
+branch  1 taken 25%
+        3:   50:				UntilComment();
+call    0 returned 33%
+        1:   51:				break;
+        -:   52:			}else{
+        1:   53:				error("/ is not undeclared\n");
+call    0 returned 0%
+    #####:   54:				return ERROR;
+        -:   55:			}
+        -:   56:			break;
+        4:   57:		case '\'':
+        4:   58:			UntilString();
+call    0 returned 75%
+        3:   59:			return TSTRING;
+        -:   60:			break;
+      120:   61:		default:
+      120:   62:			isSeparator = 0;
+      120:   63:			break;
+        -:   64:		}
+        -:   65:	}
+      120:   66:	int count = 0;
+      120:   67:	if (isChar(cbuf)) { // if char, read them by end
+call    0 returned 100%
+branch  1 taken 50% (fallthrough)
+branch  2 taken 50%
+       60:   68:		int i, j = 0;
+      337:   69:		for (i = 0; (isChar(cbuf) + isNumber(cbuf)) >= 1; i++) {
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 82%
+branch  3 taken 18% (fallthrough)
+      277:   70:			string_attr[i] = cbuf;
+      277:   71:			if(i >= MAXSTRSIZE){
+branch  0 taken 0% (fallthrough)
+branch  1 taken 100%
+    #####:   72:				error("string is too long\n");
+call    0 never executed
+    #####:   73:				return ERROR;
+        -:   74:			}
+      277:   75:			cbuf = fgetc(fp);
+call    0 returned 100%
+      277:   76:			count++;
+        -:   77:		}
+        -:   78:		//printf("string_attr: %s\n", string_attr);
+       60:   79:		id_countup(string_attr);
+call    0 returned 100%
+     1855:   80:		for (j = 0; j <= NUMOFTOKEN; j++) { //check whether keyword or name
+branch  0 taken 99%
+branch  1 taken 1% (fallthrough)
+     1828:   81:			if (strcmp(string_attr, key[j].keyword) == 0) {
+branch  0 taken 2% (fallthrough)
+branch  1 taken 98%
+      239:   82:				while (count >= 0) {//init string_attr
+branch  0 taken 86%
+branch  1 taken 14% (fallthrough)
+      206:   83:					string_attr[count] = '\0';
+      206:   84:					count--;
+        -:   85:				}
+       33:   86:				return key[j].keytoken; //retrun keyword
+        -:   87:				break;
+        -:   88:			}
+        -:   89:		}
+      158:   90:		while (count >= 0) { //init string_attr
+branch  0 taken 83%
+branch  1 taken 17% (fallthrough)
+      131:   91:			string_attr[count] = '\0';
+      131:   92:			count--;
+        -:   93:		}
+       27:   94:		return TNAME; //return name
+       60:   95:	} else if (isNumber(cbuf)) { //if number, read them by end
+call    0 returned 100%
+branch  1 taken 8% (fallthrough)
+branch  2 taken 92%
+        5:   96:		int i = 0;
+        5:   97:		num_attr = 0;
+       10:   98:		for (i = 0; isNumber(cbuf)>0; i++) {
+call    0 returned 100%
+branch  1 taken 50%
+branch  2 taken 50% (fallthrough)
+        5:   99:			num_attr = num_attr * 10 + (cbuf-48);
+        5:  100:			cbuf = fgetc(fp);
+call    0 returned 100%
+        5:  101:			if((num_attr > MAXINTSIZE)||(num_attr < 0)){
+branch  0 taken 0% (fallthrough)
+branch  1 taken 100%
+    #####:  102:				error("number is too long\n");
+call    0 never executed
+    #####:  103:				return ERROR;
+        -:  104:			}
+        -:  105:		}
+        5:  106:		return TNUMBER;
+        -:  107:	} else {
+       55:  108:		int i = TPLUS;
+      738:  109:		for (i = TPLUS; i <= TSEMI; i++) {
+branch  0 taken 99%
+branch  1 taken 1% (fallthrough)
+      734:  110:			if (cbuf == tokenstr[i][0]) {
+branch  0 taken 7% (fallthrough)
+branch  1 taken 93%
+       51:  111:				cbuf = fgetc(fp);
+call    0 returned 100%
+       51:  112:				return i;
+        -:  113:			}
+        -:  114:		}
+        4:  115:		if(cbuf == EOF){
+branch  0 taken 50% (fallthrough)
+branch  1 taken 50%
+        2:  116:			return EOFCODE;
+        -:  117:		}
+        -:  118:
+        -:  119:		char dst[100];
+        2:  120:		snprintf(dst, sizeof dst, "%c is undeclared.\n", cbuf);
+        2:  121:		error(dst);
+call    0 returned 0%
+    #####:  122:		return ERROR;
+        -:  123:	}
+        -:  124:}
+        -:  125:
+function isNumber called 407 returned 100% blocks executed 100%
+      407:  126:int isNumber(int c) {
+      407:  127:	if (c >= '0' && c <= '9') {
+branch  0 taken 81% (fallthrough)
+branch  1 taken 19%
+branch  2 taken 4% (fallthrough)
+branch  3 taken 96%
+       12:  128:		return 1;
+        -:  129:	} else {
+      395:  130:		return 0;
+        -:  131:	}
+        -:  132:}
+        -:  133:
+function isChar called 457 returned 100% blocks executed 100%
+      457:  134:int isChar(int c) {
+      457:  135:	if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
+branch  0 taken 74% (fallthrough)
+branch  1 taken 26%
+branch  2 taken 1% (fallthrough)
+branch  3 taken 99%
+branch  4 taken 2% (fallthrough)
+branch  5 taken 98%
+branch  6 taken 0% (fallthrough)
+branch  7 taken 100%
+      335:  136:		return 1;
+        -:  137:	} else {
+      122:  138:		return 0;
+        -:  139:	}
+        -:  140:}
+        -:  141:
+function UntilFun called 2 returned 50% blocks executed 82%
+        2:  142:void UntilFun(int c) {
+        2:  143:	char cin = cbuf;
+        2:  144:	cbuf = fgetc(fp);
+call    0 returned 100%
+        8:  145:	while (cbuf != c) {
+branch  0 taken 88%
+branch  1 taken 12% (fallthrough)
+        7:  146:		if (cbuf == EOF) {
+branch  0 taken 14% (fallthrough)
+branch  1 taken 86%
+        -:  147:			char mes[100];
+        1:  148:			sprintf(mes, "%c is undeclared. %c is expected.\n",cin,c);
+        1:  149:			error(mes);
+call    0 returned 0%
+    #####:  150:			break;
+        -:  151:		}
+        6:  152:		cbuf = fgetc(fp);
+call    0 returned 100%
+        -:  153:	}
+        1:  154:	cbuf = fgetc(fp);
+call    0 returned 100%
+        1:  155:}
+        -:  156:
+function UntilComment called 3 returned 33% blocks executed 91%
+       18:  157:void UntilComment(void) {
+        -:  158:	while (1) {
+       18:  159:		cbuf = fgetc(fp);
+call    0 returned 100%
+       18:  160:		if (cbuf == '*') {
+branch  0 taken 6% (fallthrough)
+branch  1 taken 94%
+        1:  161:			cbuf = fgetc(fp);
+call    0 returned 100%
+        1:  162:			if (cbuf == '/') {
+branch  0 taken 100% (fallthrough)
+branch  1 taken 0%
+        1:  163:				cbuf = fgetc(fp);
+call    0 returned 100%
+        1:  164:				break;
+        -:  165:			}
+        -:  166:		}
+       17:  167:		if (cbuf == EOF) {
+branch  0 taken 12% (fallthrough)
+branch  1 taken 88%
+        2:  168:			error("/* is undeclared.another */ is expected.\n");
+call    0 returned 0%
+    #####:  169:			break;
+        -:  170:		}
+        -:  171:	}
+        1:  172:}
+        -:  173:
+function UntilString called 4 returned 75% blocks executed 91%
+       50:  174:void UntilString(void) {
+        -:  175:	while (1) {
+       50:  176:		cbuf = fgetc(fp);
+call    0 returned 100%
+       50:  177:		if (cbuf == '\'') {
+branch  0 taken 6% (fallthrough)
+branch  1 taken 94%
+        3:  178:			cbuf = fgetc(fp);
+call    0 returned 100%
+        3:  179:			if (cbuf != '\'') {
+branch  0 taken 100% (fallthrough)
+branch  1 taken 0%
+        3:  180:				cbuf = fgetc(fp);
+call    0 returned 100%
+        3:  181:				break;
+        -:  182:			}
+        -:  183:		}
+       47:  184:		if (cbuf == EOF) {
+branch  0 taken 2% (fallthrough)
+branch  1 taken 98%
+        1:  185:			error("\' is undeclared.another \' is expected.\n");
+call    0 returned 0%
+    #####:  186:			break;
+        -:  187:		}
+        -:  188:	}
+        3:  189:}
+        -:  190:
+function get_linenum called 7 returned 100% blocks executed 100%
+        7:  191:int get_linenum(void) {
+        7:  192:	return num_line;
+        -:  193:}
+function end_scan called 9 returned 100% blocks executed 100%
+        9:  194:void end_scan(void) {
+        9:  195:	fclose(fp);
+call    0 returned 100%
+        9:  196:}

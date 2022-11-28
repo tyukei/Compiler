@@ -85,7 +85,6 @@ extern int isNumber(int c);
 extern int isChar(int c);
 extern void UntilFun(int c);
 extern void UntilComment(void);
-extern void UntilString(void);
 
 
 /* token-list.c */

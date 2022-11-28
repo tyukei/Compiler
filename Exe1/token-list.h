@@ -3,7 +3,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#define MAXSTRSIZE 1024
+#define MAXSTRSIZE 4096
+#define MAXINTSIZE 2147483647
 
 /* Token */
 #define	TNAME		1	/* Name : Alphabet { Alphabet | Digit } */
@@ -85,11 +86,12 @@ extern int isNumber(int c);
 extern int isChar(int c);
 extern void UntilFun(int c);
 extern void UntilComment(void);
+extern void UntilString(void);
 
 
 /* token-list.c */
 extern void init_idtab();
 extern void id_countup(char *np);
 extern void print_idtab();
-void release_idtab();
+extern void release_idtab();
 

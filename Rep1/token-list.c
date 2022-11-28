@@ -81,6 +81,9 @@ int main(int nc, char *np[]) {
 }
 
 void error(char *mes) {
-	printf("\n ERROR: %s\n", mes);
+	int line = get_linenum();
+	printf("\nERROR(%d): %s\n", line, mes);
 	end_scan();
+	release_idtab();
+	exit(1);
 }
